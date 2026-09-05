@@ -29,3 +29,25 @@ def celsius_to_farenheit(celsius : float) -> float:
     """
 
     return round((celsius * 9/5) + 32,2)
+
+
+@tool
+def get_weather(city: str) -> str:
+    """ Get the curent weather of the city
+    
+    Args:
+        city : "name of the city"
+    """
+
+    weather_data = {
+        "delhi" : "32 C, sunny",
+        "mumbai" : "29 C, cloudy",
+        "bangalore" : "24 C, rainy "
+    }
+
+    city = city.lower().strip()
+
+    if city not in weather_data:
+        raise ValueError(f"Weather data not available for {city}")
+
+    return weather_data[city]
