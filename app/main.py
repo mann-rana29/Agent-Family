@@ -38,7 +38,7 @@ result = agent.invoke({
     "messages" : [
         {
             "role" : "user",
-            "content" : "What is the weather in Paris and what is 45 celsius in farenheit?"
+            "content" : "What is the weather in Paris?"
         }
     ]
 })

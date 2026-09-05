@@ -1,4 +1,8 @@
 from langchain.tools import tool
+import httpx
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
+
 
 @tool
 def calculate_total(price : float, quantity : int) -> float:
@@ -30,6 +34,27 @@ def celsius_to_farenheit(celsius : float) -> float:
 
     return round((celsius * 9/5) + 32,2)
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(
+        multiplier=0.25,
+        min=0.25,
+        max =2 
+    ),
+    retry= retry_if_exception_type(
+        (httpx.ConnectError, httpx.ReadTimeout)
+    ),
+    reraise=True
+)
+def _fetch_weather(city: str) -> str:
+    url = "https://httpbin.org/delay/10"
+
+    with httpx.Client(timeout=5.0) as client:
+        response = client.get(url)
+
+    response.raise_for_status()
+
+    return f"Weather lookup completed for {city}"
 
 @tool
 def get_weather(city: str) -> str:
@@ -39,15 +64,6 @@ def get_weather(city: str) -> str:
         city : "name of the city"
     """
 
-    weather_data = {
-        "delhi" : "32 C, sunny",
-        "mumbai" : "29 C, cloudy",
-        "bangalore" : "24 C, rainy "
-    }
-
     city = city.lower().strip()
 
-    if city not in weather_data:
-        raise ValueError(f"Weather data not available for {city}")
-
-    return weather_data[city]
+    return _fetch_weather(city)
