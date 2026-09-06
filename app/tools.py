@@ -105,3 +105,28 @@ def get_preference(key: str, runtime : ToolRuntime[RequestContext] ) -> str:
         return "No preference found"
 
     return memory.value["value"]
+
+@tool
+def search_memories(
+    query: str,
+    runtime : ToolRuntime[RequestContext]
+) -> str:
+    """Search the user's long term memories for relevant information"""
+
+    namespace = ("users", runtime.context.user_id)
+
+    memories = runtime.store.search(
+        namespace,
+        query=query,
+        limit=5
+    )
+
+    if not memories:
+        return "No relevant memories found"
+
+    results = []
+
+    for memory in memories:
+        results.append(str(memory.value))
+
+    return "\n".join(results)

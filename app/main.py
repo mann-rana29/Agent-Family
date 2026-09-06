@@ -8,7 +8,7 @@ from langgraph.store.memory import InMemoryStore
 
 from app.config import GEMINI_API_KEY
 from app.context import RequestContext
-from app.tools import get_current_customer, get_preference, save_preference, calculate_total, celsius_to_farenheit, get_weather
+from app.tools import get_current_customer,search_memories , get_preference, save_preference, calculate_total, celsius_to_farenheit, get_weather
 
 @wrap_tool_call
 def handle_tool_errors(request, handler):
@@ -34,7 +34,8 @@ tools = [
     get_weather,
     get_current_customer,
     save_preference,
-    get_preference
+    get_preference,
+    search_memories
 ]
 
 config = {
@@ -62,7 +63,7 @@ result = agent.invoke(
         "messages": [
             {
                 "role": "user",
-                "content": "I like short answers",
+                "content": ( "I like short answers", "I use python for backend", "i am looking for ai jobs"),
             }
         ]
     },
@@ -76,7 +77,7 @@ result = agent.invoke(
         "messages": [
             {
                 "role": "user",
-                "content": "How do i like my answers?",
+                "content": "What job am i looking for?",
             }
         ]
     },
