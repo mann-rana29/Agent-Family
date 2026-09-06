@@ -78,3 +78,30 @@ def get_current_customer(runtime : ToolRuntime[RequestContext]) -> dict:
     tenant_id = runtime.context.tenant_id
 
     return get_customer(user_id, tenant_id)
+
+@tool
+def save_preference(key : str, value : str, runtime : ToolRuntime[RequestContext]) -> str:
+    """Save a user preference to long term memory"""
+
+    namespace = ("users", runtime.context.user_id)
+
+    runtime.store.put(
+        namespace,
+        key,
+        {"value" : value}
+    )
+
+    return f"Saved preferences : {key} = {value}"
+
+@tool
+def get_preference(key: str, runtime : ToolRuntime[RequestContext] ) -> str:
+    """Retrieve a saved user preference"""
+
+    namespace = ("users", runtime.context.user_id)
+
+    memory = runtime.store.get(namespace, key)
+
+    if memory is None:
+        return "No preference found"
+
+    return memory.value["value"]

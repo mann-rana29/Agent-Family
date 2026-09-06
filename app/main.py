@@ -4,10 +4,11 @@ from langchain.messages import ToolMessage
 from langchain.agents.middleware import wrap_tool_call
 
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.store.memory import InMemoryStore
 
 from app.config import GEMINI_API_KEY
 from app.context import RequestContext
-from app.tools import get_current_customer, calculate_total, celsius_to_farenheit, get_weather
+from app.tools import get_current_customer, get_preference, save_preference, calculate_total, celsius_to_farenheit, get_weather
 
 @wrap_tool_call
 def handle_tool_errors(request, handler):
@@ -19,10 +20,11 @@ def handle_tool_errors(request, handler):
             tool_call_id = request.tool_call["id"]
         )
 
-checkpointer = InMemorySaver()    
+store = InMemoryStore()    
+checkpointer = InMemorySaver()
 
 model = ChatGoogleGenerativeAI(
-    model="gemini-3.8-flash",
+    model="gemini-3.1-flash-lite",
     api_key=GEMINI_API_KEY
 )
 
@@ -30,7 +32,9 @@ tools = [
     calculate_total,
     celsius_to_farenheit,
     get_weather,
-    get_current_customer
+    get_current_customer,
+    save_preference,
+    get_preference
 ]
 
 config = {
@@ -41,13 +45,14 @@ config = {
 
 agent = create_agent(
     model = model,
-    tools = [],
+    tools = tools,
     middleware=[handle_tool_errors],
+    store=store,
     checkpointer=checkpointer
 )
 
 context = RequestContext(
-    user_id="user_456",
+    user_id="user_123",
     tenant_id="tenant_abc",
     role="customer"
 )
@@ -57,11 +62,25 @@ result = agent.invoke(
         "messages": [
             {
                 "role": "user",
-                "content": "What is my name?",
+                "content": "I like short answers",
             }
         ]
     },
-    config=config,
+    context=context, config=config,
+)
+
+print(result["messages"][-1].text)
+
+result = agent.invoke(
+    {
+        "messages": [
+            {
+                "role": "user",
+                "content": "How do i like my answers?",
+            }
+        ]
+    },
+    context=context, config=config,
 )
 
 print(result["messages"][-1].text)
