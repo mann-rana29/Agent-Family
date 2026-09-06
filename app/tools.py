@@ -1,7 +1,8 @@
-from langchain.tools import tool
+from langchain.tools import tool, ToolRuntime
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-
+from app.context import RequestContext
+from app.services import get_customer
 
 
 @tool
@@ -67,3 +68,13 @@ def get_weather(city: str) -> str:
     city = city.lower().strip()
 
     return _fetch_weather(city)
+
+
+@tool
+def get_current_customer(runtime : ToolRuntime[RequestContext]) -> dict:
+    """Return the authenticated customer's profile"""
+
+    user_id = runtime.context.user_id
+    tenant_id = runtime.context.tenant_id
+
+    return get_customer(user_id, tenant_id)

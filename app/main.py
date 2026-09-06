@@ -4,7 +4,8 @@ from langchain.messages import ToolMessage
 from langchain.agents.middleware import wrap_tool_call
 
 from app.config import GEMINI_API_KEY
-from app.tools import calculate_total, celsius_to_farenheit, get_weather
+from app.context import RequestContext
+from app.tools import get_current_customer, calculate_total, celsius_to_farenheit, get_weather
 
 @wrap_tool_call
 def handle_tool_errors(request, handler):
@@ -25,7 +26,8 @@ model = ChatGoogleGenerativeAI(
 tools = [
     calculate_total,
     celsius_to_farenheit,
-    get_weather
+    get_weather,
+    get_current_customer
 ]
 
 agent = create_agent(
@@ -34,13 +36,19 @@ agent = create_agent(
     middleware=[handle_tool_errors]
 )
 
+context = RequestContext(
+    user_id="user_456",
+    tenant_id="tenant_abc",
+    role="customer"
+)
+
 result = agent.invoke({
     "messages" : [
         {
             "role" : "user",
-            "content" : "What is the weather in Paris?"
+            "content" : "Show me my customer profile"
         }
     ]
-})
+}, context=context)
 
 print(result["messages"][-1].text)
