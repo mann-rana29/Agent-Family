@@ -8,7 +8,7 @@ from langgraph.store.memory import InMemoryStore
 
 from app.config import GEMINI_API_KEY
 from app.context import RequestContext
-from app.tools import get_current_customer,search_memories , get_preference, save_preference, calculate_total, celsius_to_farenheit, get_weather
+from app.tools import delete_preference, get_current_customer, search_memories , get_preference, save_preference, calculate_total, celsius_to_farenheit, get_weather
 
 @wrap_tool_call
 def handle_tool_errors(request, handler):
@@ -35,7 +35,8 @@ tools = [
     get_current_customer,
     save_preference,
     get_preference,
-    search_memories
+    search_memories,
+    delete_preference
 ]
 
 config = {

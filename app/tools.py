@@ -130,3 +130,16 @@ def search_memories(
         results.append(str(memory.value))
 
     return "\n".join(results)
+
+@tool
+def delete_preference(key :str, runtime : ToolRuntime[RequestContext])-> str:
+    """Delete a saved user preference from long term memory"""
+
+    namespace = ("users", runtime.context.user_id)
+
+    runtime.store.delete(
+        namespace,
+        key
+    )
+
+    return f"Forgot preference : {key}"
