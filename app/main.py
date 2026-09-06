@@ -3,6 +3,8 @@ from langchain.agents import create_agent
 from langchain.messages import ToolMessage
 from langchain.agents.middleware import wrap_tool_call
 
+from langgraph.checkpoint.memory import InMemorySaver
+
 from app.config import GEMINI_API_KEY
 from app.context import RequestContext
 from app.tools import get_current_customer, calculate_total, celsius_to_farenheit, get_weather
@@ -16,7 +18,8 @@ def handle_tool_errors(request, handler):
             content=f"Invalid tool input: {exc}",
             tool_call_id = request.tool_call["id"]
         )
-    
+
+checkpointer = InMemorySaver()    
 
 model = ChatGoogleGenerativeAI(
     model="gemini-3.8-flash",
@@ -30,10 +33,17 @@ tools = [
     get_current_customer
 ]
 
+config = {
+    "configurable" : {
+        "thread_id" : "thread-123"
+    }
+}
+
 agent = create_agent(
     model = model,
-    tools = tools,
-    middleware=[handle_tool_errors]
+    tools = [],
+    middleware=[handle_tool_errors],
+    checkpointer=checkpointer
 )
 
 context = RequestContext(
@@ -42,13 +52,16 @@ context = RequestContext(
     role="customer"
 )
 
-result = agent.invoke({
-    "messages" : [
-        {
-            "role" : "user",
-            "content" : "Show me my customer profile"
-        }
-    ]
-}, context=context)
+result = agent.invoke(
+    {
+        "messages": [
+            {
+                "role": "user",
+                "content": "What is my name?",
+            }
+        ]
+    },
+    config=config,
+)
 
 print(result["messages"][-1].text)
