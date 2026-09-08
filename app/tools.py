@@ -143,3 +143,17 @@ def delete_preference(key :str, runtime : ToolRuntime[RequestContext])-> str:
     )
 
     return f"Forgot preference : {key}"
+
+
+@tool
+def prepare_refund(order_id : str, amount : float , reason : str)-> str:
+    """Prepare a refund plan without actually moving money."""
+
+    if amount <= 0:
+        raise ValueError("Refund amount must be greater than 0")
+
+    return(
+        f"Refund prepared for order {order_id} : "
+        f"{amount:.2f} because {reason}"
+        f"Status : pending approval."
+    )
